@@ -29,4 +29,20 @@ So you can play with [RDF triples](https://en.wikipedia.org/wiki/Semantic_triple
 (sparql-select "select * where {?s ?p ?o}")
 ; returns a list of alists (bindings) that satisfy the query
 ;   ((("p" . "http://bob.com/has") ("o" . 1) ("s" . "http://bob.com/thing/0")))
+
+(write-dataset-to-file "/tmp/la.ttl")
+
+; user@machine:/tmp$ cat /tmp/la.ttl 
+; <http://bob.com/thing/0>
+;         <http://bob.com/has>  1 .
+
+
+; edit file, changing 1 to 100
+
+(read-from-file-into-dataset "/tmp/la.ttl")
+
+(sparql-select "select * where {?s ?p ?o}")
+; the old triple and the new triple
+;    ((("p" . "http://bob.com/has") ("o" . 1) ("s" . "http://bob.com/thing/0")) 
+;     (("p" . "http://bob.com/has") ("o" . 100) ("s" . "http://bob.com/thing/0")))
 ```
