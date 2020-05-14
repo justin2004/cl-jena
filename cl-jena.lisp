@@ -81,12 +81,17 @@
 
 
 
-
-(defun sparql-construct (query &optional (model *model*))
-  "returns a model"
-  (let* ((query-execution (get-query-execution query model))
-         (result-model (#"execConstruct" query-execution)))
-    result-model))
+(defun sparql-construct (query &optional (dataset *ds*))
+  "returns a model ; TODO maybe this should return a dataset to fit with the pattern here"
+  (let* ((model (#"getDefaultModel" *ds*))
+         (query-execution (get-query-execution query model)))
+    (unwind-protect
+      (progn
+        (#"begin" dataset)
+        (#"execConstruct" query-execution)) ; returns a model
+      (progn
+        (#"close" query-execution)
+        (#"end" dataset)))))
 
 ; dont export
 (defun concat-prefixlist (lis)
