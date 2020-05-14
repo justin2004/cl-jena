@@ -1,7 +1,7 @@
 # cl-jena
 
 ### What
-Some wrappers around some [Apache Jena](https://jena.apache.org/) functionality.
+A wrapper around some [Apache Jena](https://jena.apache.org/) functionality.
 
 ### Why
 So you can play with [RDF triples](https://en.wikipedia.org/wiki/Semantic_triple) from Common Lisp.
