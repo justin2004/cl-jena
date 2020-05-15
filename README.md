@@ -10,7 +10,10 @@ So you can play with [RDF triples](https://en.wikipedia.org/wiki/Semantic_triple
 ### Dependencies
 - [ABCL](https://abcl.org/)
 - [Quicklisp](https://www.quicklisp.org) (although this project is not in Quicklisp -- it merely uses it locally)
-- Apache Jena classes on your classpath (TODO document this)
+- Apache Jena classes on your classpath
+    - If you don't want to make your own jar you can download one I built:
+        - `wget 'https://github.com/justin2004/spring-boot-rest-example/raw/master/shared-dependencies/target/shared-things-1.0.0-jar-with-dependencies.jar'`
+        - `(java:add-to-classpath #p"/path/to/shared-things-1.0.0-jar-with-dependencies.jar")`
 
 ### How
 - put this directory in your quicklisp local-projects directory
