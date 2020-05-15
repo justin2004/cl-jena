@@ -4,7 +4,8 @@
 A wrapper around some [Apache Jena](https://jena.apache.org/) functionality.
 
 ### Why
-So you can play with [RDF triples](https://en.wikipedia.org/wiki/Semantic_triple) from Common Lisp.
+So you can play with [RDF triples](https://en.wikipedia.org/wiki/Semantic_triple) using
+[SPARQL](https://en.wikipedia.org/wiki/SPARQL) from Common Lisp.
 
 ### Dependencies
 - [ABCL](https://abcl.org/)
