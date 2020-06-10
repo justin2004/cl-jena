@@ -46,6 +46,9 @@
 
 
 ; creates a memory backed tdb2 dataset which works for testing
+(defun get-default-dataset ()
+  (get-default-model))
+
 (defun get-default-model ()
   "sets *model* and *ds* to default model and the corresponding dataset, respectively"
   (if (null *ds*)
@@ -81,9 +84,12 @@
 
 
 
-(defun sparql-construct (query &optional (dataset *ds*))
-  "returns a model ; TODO maybe this should return a dataset to fit with the pattern here"
-  (let* ((model (#"getDefaultModel" *ds*))
+(defun sparql-construct (query &key (dataset *ds*) input-model)
+  "returns a model ; TODO maybe this should return a dataset to fit with the pattern here
+   if input-model is provided it is used"
+  (let* ((model (if (null input-model)
+                    (#"getDefaultModel" dataset)
+                    input-model))
          (query-execution (get-query-execution query model)))
     (unwind-protect
       (progn
@@ -150,7 +156,9 @@
     alist))
 
 
-(defun sparql-update (query &optional (dataset *ds*))
+; TODO does this need the inf-model if we are using one?
+;      e.g. would a delete insert statement need to see the result of inference?
+(defun sparql-update (query &key (dataset *ds*))
   (let* ((update-processor (get-update-processor query dataset)))
          (unwind-protect 
            (progn
@@ -160,9 +168,14 @@
            (#"end" dataset))))
 
 
-(defun sparql-select (query &optional (dataset *ds*))
-  (let* ((model (#"getDefaultModel" dataset))
-         (query-execution (get-query-execution query model))
+
+(defun sparql-select (query &key (dataset *ds*) input-model)
+  "if you provide an input-model (on top of the dataset) it will be used"
+  (let* ((model (if (null input-model) 
+                    (#"getDefaultModel" dataset)
+                    input-model))
+         (query-execution (get-query-execution query 
+                                               model))
          (resultset (#"execSelect" query-execution)))
     (unwind-protect 
       (progn
@@ -252,3 +265,33 @@
                    "org.apache.jena.riot.RDFFormat"
                    "TURTLE_PRETTY")))
       (#"end" dataset))))
+
+
+
+;;;; reasoning
+
+
+; owl micro
+(defun make-micro-owl-reasoner ()
+  (let* ((owl-config (#"createResource"
+                      (jstatic "createDefaultModel"
+                               "org.apache.jena.rdf.model.ModelFactory")))
+         (owl-reasoner (#"create"
+                        (jstatic "theInstance"        
+                                 "org.apache.jena.reasoner.rulesys.OWLMicroReasonerFactory")
+                        owl-config)))
+    owl-reasoner))
+
+; owl full
+(defun make-owl-reasoner ()
+  (jstatic "getOWLReasoner"
+           "org.apache.jena.reasoner.ReasonerRegistry"))
+
+
+; TODO does not support inf-models on inf-models
+(defun make-inf-model (input-dataset reasoner)                                                                                                     
+  (let* ((inf-model (jstatic "createInfModel"                                                                                              
+                             "org.apache.jena.rdf.model.ModelFactory"                                                                      
+                             reasoner                                                                                                      
+                             (#"getDefaultModel" input-dataset))))
+    inf-model))
