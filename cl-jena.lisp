@@ -282,7 +282,7 @@
                       (jstatic "createDefaultModel"
                                "org.apache.jena.rdf.model.ModelFactory")))
          (owl-reasoner (#"create"
-                        (jstatic "theInstance"        
+                        (jstatic "theInstance"
                                  "org.apache.jena.reasoner.rulesys.OWLMicroReasonerFactory")
                         owl-config)))
     owl-reasoner))
@@ -294,10 +294,10 @@
 
 
 ; TODO does not support inf-models on inf-models
-(defun make-inf-model (input-dataset reasoner)                                                                                                     
-  (let* ((inf-model (jstatic "createInfModel"                                                                                              
-                             "org.apache.jena.rdf.model.ModelFactory"                                                                      
-                             reasoner                                                                                                      
+(defun make-inf-model (input-dataset reasoner)
+  (let* ((inf-model (jstatic "createInfModel"
+                             "org.apache.jena.rdf.model.ModelFactory"
+                             reasoner
                              (#"getDefaultModel" input-dataset))))
     inf-model))
 
