@@ -50,3 +50,91 @@ So you can play with [RDF triples](https://en.wikipedia.org/wiki/Semantic_triple
 ;    ((("p" . "http://bob.com/has") ("o" . 1) ("s" . "http://bob.com/thing/0")) 
 ;     (("p" . "http://bob.com/has") ("o" . 100) ("s" . "http://bob.com/thing/0")))
 ```
+
+
+
+
+
+
+
+```
+;; example using owl inference
+
+; start clean
+(setf *ds* nil)
+
+; make a new dataset with a default model
+(jena::get-default-model)
+
+; make an inference model (on top of the dataset *ds*)
+(setf *infm*
+      (jena::make-inf-model *ds*
+                  (jena::make-owl-reasoner)))
+
+
+
+
+; look for statements about henry in the dataset
+(jena::print-alists
+  (sparql-select "select * where {d2rq:henry ?p ?o}" 
+                 :dataset *ds*))
+; NIL
+
+;; no statments yet
+
+
+
+; look for statements about henry in the inference model
+(jena::print-alists
+  (sparql-select "select * where {d2rq:henry ?p ?o}" 
+                 :dataset *ds*
+                 :input-model *infm*))
+; NIL
+
+;; no statments yet
+
+
+
+
+; add some statements to the dataset (which the inference model uses)
+(sparql-update "insert data { 
+                 d2rq:child a owl:class .
+                 d2rq:person a owl:class .
+                 d2rq:child rdfs:subClassOf d2rq:person .
+                 d2rq:bob a d2rq:person .
+                 d2rq:henry a d2rq:child .
+                }" 
+               :dataset *ds*
+               :inf-model *infm*)
+
+; look for statements about henry in the dataset again
+(jena::print-alists
+  (sparql-select "select * where {d2rq:henry ?p ?o}" 
+                 :dataset *ds*))
+
+; p: http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+; o: http://www.wiwiss.fu-berlin.de/suhl/bizer/D2RQ/0.1#child
+
+;; notice that henry is a child like we said
+
+
+
+
+; but since we know we can now infer that, since henry is child,
+; he is also a person so let's look in the inference model
+
+; look for statements about henry in the inference model again
+(jena::print-alists
+  (sparql-select "select * where {d2rq:henry ?p ?o}" 
+                 :dataset *ds*
+                 :input-model *infm*))
+
+; p: http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+; o: http://www.wiwiss.fu-berlin.de/suhl/bizer/D2RQ/0.1#child
+; 
+; p: http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+; o: http://www.wiwiss.fu-berlin.de/suhl/bizer/D2RQ/0.1#person
+
+;; and now you can see henry is also a person even though we didn't 
+;; say so explicitly
+```

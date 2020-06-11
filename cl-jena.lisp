@@ -158,14 +158,19 @@
 
 ; TODO does this need the inf-model if we are using one?
 ;      e.g. would a delete insert statement need to see the result of inference?
-(defun sparql-update (query &key (dataset *ds*))
+(defun sparql-update (query &key (dataset *ds*) inf-model)
+  "pass in an inf-model if you want it to take into account the changes you are making in the dataset"
   (let* ((update-processor (get-update-processor query dataset)))
-         (unwind-protect 
-           (progn
-             (#"begin" dataset) ; TODO use the general start txn function?
-             (#"execute" update-processor)
-             (#"commit" dataset))
-           (#"end" dataset))))
+    (unwind-protect 
+      (progn
+        (#"begin" dataset) ; TODO use the general start txn function?
+        (#"execute" update-processor)
+        (#"commit" dataset))
+      (progn
+        (#"end" dataset)
+        ; if an inf-model is given then tell the "inference model to reconsult the underlying data to take into account changes."
+        (when inf-model
+          (#"rebind" inf-model))))))
 
 
 
@@ -295,3 +300,22 @@
                              reasoner                                                                                                      
                              (#"getDefaultModel" input-dataset))))
     inf-model))
+
+
+
+; TODO defgeneric
+; TODO assumes dataset underlies the model
+(defun diff (model dataset)
+  (unwind-protect
+    (progn
+      (#"begin" dataset)
+      (values
+        (#"difference" model
+         (#"getDefaultModel" dataset))
+        (#"difference" (#"getDefaultModel" dataset)
+         model)))
+    (#"end" dataset)))
+
+; TODO instead of the diff function above maybe implment a ModelChangedListener
+; https://jena.apache.org/documentation/javadoc/jena/index.html?org/apache/jena/rdf/model/ModelFactory.html
+; so we can print statements that are derived as a result of updating a model
