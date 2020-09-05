@@ -5,6 +5,7 @@
     (require :abcl-contrib)
     (require :jss)
     (ql:quickload :cl-ppcre)
+    (ql:quickload :cl-csv)
     (handler-case 
       (java:jstatic "init" (java:jclass "org.apache.jena.sys.JenaSystem"))
       (error (err) (progn 
@@ -17,6 +18,6 @@
            :serial t 
            ; :depends-on ((:require :abcl-contrib))
            ; :depends-on ((:require :jss))
-           :depends-on (#:cl-ppcre)
+           :depends-on (#:cl-ppcre #:cl-csv)
            :components ((:file "cl-jena")))
 

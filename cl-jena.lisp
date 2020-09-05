@@ -25,6 +25,7 @@
 (require :jss)
 
 (require :cl-ppcre)
+(require :cl-csv) ; TODO do i need this?
 
 (defvar *prefix-list*) 
 
@@ -154,6 +155,34 @@
         (format t "~A: ~A~%" (car binding) (cdr binding)))
       (format t "~%"))
     alist))
+
+(defun print-alists-csv (alists &optional 
+                                (stream *standard-output*))
+  "print a list of alists as .csv 
+
+   assumes that each alist has the same keys as all the others
+   "
+  ; header
+  ;   use the first alist to get the keys
+  (let* ((first-alist (car alists))
+         (varbs (mapcar #'(lambda (alist)
+                            (car alist))
+                        first-alist))
+         (sorted-varbs (sort varbs
+                             #'string<)))
+    (cl-csv:write-csv (list sorted-varbs) 
+                      :stream stream))
+  ; rows
+  (dolist (alist alists)
+    (let* ((sorted-alist (sort alist
+                               #'string<
+                               :key #'car))
+           (just-values (mapcar #'(lambda (binding)
+                                    (cdr binding))
+                                sorted-alist)))
+      (cl-csv:write-csv (list just-values)
+                        :stream stream))))
+
 
 
 ; TODO does this need the inf-model if we are using one?
