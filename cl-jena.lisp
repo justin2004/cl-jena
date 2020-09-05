@@ -219,6 +219,50 @@
       (end-txn dataset))))
 
 
+; this isn't only for vim users but the default format-string
+;   is vim-centric
+(defun sparql-select-vim (query &key 
+                                (dataset *ds*)
+                                input-model
+                                (format-string "!vd ~A --filetype=csv"))
+  "runs jena:sparql-select, converts the resultant output to csv,
+   puts it into a temporary file,
+   uses the provided :format-string to print a command to the screen you 
+   can use to view the output.
+
+   :format-string    this is where you put the program you want to view the csv with.
+                     needs one ~A which will become the temporary file name.
+
+   e.g.
+   ; if you want to look at the output in visidata (vd)
+
+   (sparql-select-vim \"select * where {?s ?p ?o}\" 
+                      :format-string \":!vd ~A --filetype=csv\")
+
+   ; which prints a vim ex command to the screen that you can execute.
+   ; see _ for more detail on doing that in vim.
+
+   "
+
+  (let* ((temp-file (uiop:run-program "mktemp" :output '(:string :stripped t))))
+    (with-open-file (s temp-file
+                       :if-does-not-exist :create 
+                       :direction :output)
+      (jena::print-alists-csv (jena:sparql-select query
+                                                  :dataset dataset
+                                                  :input-model input-model)
+                              s))
+    ; print the string to stdout
+    (format t format-string temp-file)
+
+    ; this works-ish but in slimv_box you have to switch to the REPL window in tmux
+    ; and then it seems like some character presses get consumed before visidata
+    ; get them so usage is not responsive
+    ;(uiop:launch-program  (format nil "vd ~A --filetype=csv" temp-file) 
+    ;                      :output :interactive)
+    ))
+
+
 
 ; TODO i think i need the type e.g ds.begin(ReadWrite.READ);
 (defun start-txn (dataset)
