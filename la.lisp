@@ -542,3 +542,17 @@
 
 (jfield "java.lang.System" 
         "out")
+
+;; notes
+; it seems like if you see ?s owl:sameAs ?o
+; then you need to (1) run owl (to carry out sameAs semantics for justin:hasKey to use),
+;                  (2)  then swrl (to carry out justin:hasKey semantics), 
+;                  (3)  then owl (to carry out sameAs semantics to use what justin:hasKey semantics did)
+; and if the output includes a new ?s owl:sameAs ?o
+; then you need to do the 3 again
+
+; (1) can be done on distinct datasets
+; (2) can be done a subsets of a big distinct dataset (because of makeskolem)
+;        as long as all statements about a subject are all in the same subset
+; (3) can be done on any subset (because of makeskolem distinct invocations of reasoners
+;     will cooperate because of the URIs already made
