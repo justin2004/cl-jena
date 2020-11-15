@@ -556,3 +556,14 @@
 ;        as long as all statements about a subject are all in the same subset
 ; (3) can be done on any subset (because of makeskolem distinct invocations of reasoners
 ;     will cooperate because of the URIs already made
+
+
+; currently
+; inside a restriction    justin:hasKey :hasSomeID , :hasAnotherID 
+; means :hasSomeID is inversefunctional and hasAnotherID is inversefunctional
+;
+; TODO 
+;   we want 
+;   justin:hasKey (:hasSomeID :hasAnotherID) 
+;   to mean that the combination of :hasSomeID and :hasAnotherID
+;   is inversefunctional
