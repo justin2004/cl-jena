@@ -18,7 +18,7 @@
 *ds*
 
 (jena::make-owl-reasoner)
-(setf *r* *)
+(setf *owl-reasoner* *)
 
 (setf *infm*
       (jena::make-inf-model *ds*
@@ -411,21 +411,19 @@
 
 (jss:java-class-method-names  "org.apache.jena.reasoner.rulesys.GenericRuleReasoner")
 (jss:java-class-method-names  "org.apache.jena.reasoner.rulesys.GenericRuleReasoner")
-
+(setf *infm-prime* (jstatic "createInfModel" 
+                            "org.apache.jena.rdf.model.ModelFactory"
+                            *owl-reasoner*
+                            *infm*))
+(setf *infm0* (jstatic "createInfModel" 
+                      "org.apache.jena.rdf.model.ModelFactory"
+                      *owl-reasoner*
+                      *model*))
 (setf *infm* (jstatic "createInfModel" 
                       "org.apache.jena.rdf.model.ModelFactory"
                       *g-reasoner*
-                      *model*))
-(setf *g-reasoner* (jss:new  "org.apache.jena.reasoner.rulesys.GenericRuleReasoner"
-          (jstatic "parseRules" 
-                   "org.apache.jena.reasoner.rulesys.Rule"
-                   "[rule1: 
-                    (?restriction <http://www.w3.org/2020/01/justin#hasKey> ?key) 
-                    (?ec owl:equivalentClass ?restriction) 
-                    (?s rdf:type ?ec)
-                    -> 
-                    print(?ec,\"rule fired\")
-                    ]")))
+                      *infm0*))
+; trying with multiple keys
 (setf *g-reasoner* (jss:new  "org.apache.jena.reasoner.rulesys.GenericRuleReasoner"
           (jstatic "parseRules" 
                    "org.apache.jena.reasoner.rulesys.Rule"
@@ -441,12 +439,35 @@
                     print(?uri,\"rule fired\")
                     (?s owl:sameAs ?uri)
                     ]")))
+(setf *g-reasoner* (jss:new  "org.apache.jena.reasoner.rulesys.GenericRuleReasoner"
+          (jstatic "parseRules" 
+                   "org.apache.jena.reasoner.rulesys.Rule"
+                   "[rule1: 
+                    (?restriction <http://www.w3.org/2020/01/justin#hasKey> ?key) 
+                    (?ec owl:equivalentClass ?restriction) 
+                    (?s rdf:type ?ec)
+                    (?s ?key ?keyvalue)
+                    strConcat(?key,?keyAsString)
+                    strConcat(?keyvalue,?keyvalueAsString)
+                    regex(?keyAsString,'.*[#/]([^#/]*)$',?cap)
+                    uriConcat(?ec,\"/blank-nodes/\", \"asIdentifiedBy/\", ?cap, \"/\" , ?keyvalueAsString, ?uri)
+                    makeSkolem(?skolem,?ec,?cap,?keyvalueAsString)
+                    strConcat(?skolem,?skolem-string)
+                    uriConcat(?ec,\"/blank-nodes-with-makeskolem/\", \"asIdentifiedBy/\", ?cap, \"/\" , ?skolem, ?uri-skolem)
+                    -> 
+                    print(?uri,\"rule fired\")
+                    (?s owl:sameAs ?uri-skolem)
+                    ]")))
 ; in order to do this                   
 ; (?s a ?ec)
 ; we'd have to run the owl reasoner before the swrl rules
 
 ; wasn't working
 ;                    makeSkolem(?uri, ?ec, ?key, ?keyvalue)
+
+; not using these anymore in the head -- just want the uri derived from the skolem
+; (?s owl:sameAs ?uri)
+; (?s owl:sameAs ?skolem)
 
 
 *prefix-list*
@@ -460,14 +481,10 @@
 (print-alists (sparql-select "select * where 
                               {
                               ?s owl:sameAs ?o .
+                              filter(?s = :al || ?s = :ally || ?s = :albert || ?s = :alber) .
                               } "
-                             :input-model *infm*))
+                             :input-model *infm-prime*))
 
-                    ; (?restriction <http://www.w3.org/2020/01/justin#hasKey> ?key) 
-                    ; (?ec owl:equivalentClass ?restriction) 
-                    ; (?s a ?ec)
-                    ; (?s ?key ?keyvalue)
-                    ; ->   (?s owl:sameAs ?uri)
 (print-alists (sparql-select "select * where 
                               {
                               ?res justin:hasKey ?key .
@@ -478,7 +495,7 @@
                              :input-model *model*))
 
 (sparql-select-vim "select * where {?s ?p ?o}"
-                   :input-model *infm*)
+                   :input-model *infm-prime*)
 
 (push "prefix justin: <http://www.w3.org/2020/01/justin#>"
       *prefix-list*)
@@ -488,7 +505,40 @@
 (sparql-update "insert data {
                 :al a :Blah .
                 :al <http://www.semanticweb.org/justin/ontologies/2020/5/untitled-ontology-3#hasSomeID> 99 .
+                :al <http://www.semanticweb.org/justin/ontologies/2020/5/untitled-ontology-3#hasname> \"al\" .
+                :al <http://www.semanticweb.org/justin/ontologies/2020/5/untitled-ontology-3#hasAnotherID> 150 .
+                :al <http://www.semanticweb.org/justin/ontologies/2020/5/untitled-ontology-3#hasAnotherID> \"wordy words\" .
+                :al <http://www.semanticweb.org/justin/ontologies/2020/5/untitled-ontology-3#hasSomeID> <http://google.com/3> .
                 :albert a :Blah .
                 :albert <http://www.semanticweb.org/justin/ontologies/2020/5/untitled-ontology-3#hasSomeID> 99 .
+                :albert <http://www.semanticweb.org/justin/ontologies/2020/5/untitled-ontology-3#hasSomeID> <http://google.com/99> .
+                :alber a :Blah .
+                :alber <http://www.semanticweb.org/justin/ontologies/2020/5/untitled-ontology-3#hasSomeID> <http://google.com/99> .
+                <http://google.com/100> owl:sameAs <http://google.com/99> .
+                :ally a :Blah .
+                :ally <http://www.semanticweb.org/justin/ontologies/2020/5/untitled-ontology-3#hasSomeID> <http://google.com/3> .
+                :ally <http://www.semanticweb.org/justin/ontologies/2020/5/untitled-ontology-3#hasSomeID> <http://google.com/100> .
+                :ally <http://www.semanticweb.org/justin/ontologies/2020/5/untitled-ontology-3#hasname> \"ally\" .
                 }"
-               :inf-model *infm*)
+               :inf-model *infm-prime*)
+
+
+
+
+
+
+
+
+ ; write (OutputStream out, String lang))
+(#"write" (sparql-construct "construct {?s ?p ?o} where
+                             {
+                             ?s ?p ?o .
+                             filter(?s = :al || ?s = :ally) .
+                             } "
+                            :input-model *infm*)
+          (jfield "java.lang.System" 
+                  "out")
+          "TTL")
+
+(jfield "java.lang.System" 
+        "out")
