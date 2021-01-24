@@ -245,7 +245,7 @@
                       :format-string \":!vd ~A --filetype=csv\")
 
    ; which prints a vim ex command to the screen that you can execute.
-   ; see _ for more detail on doing that in vim.
+   ; see https://github.com/justin2004/weblog/tree/master/lisp_sparql_visidata for more detail on doing that in vim.
 
    "
 
