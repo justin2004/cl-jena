@@ -332,11 +332,13 @@
 
 
 ; TODO assumes turtle file
-(defun write-dataset-to-file (file-path &key (dataset *ds*))
+(defun write-dataset-to-file (file-path &key (dataset *ds*) (input-model nil))
   (let* ((file-output-stream (jss:new "java.io.FileOutputStream"
                                       (jss:new "java.io.File"
                                                file-path)))
-         (model (#"getDefaultModel" dataset)))
+         (model (if (null input-model) 
+                    (#"getDefaultModel" dataset)
+                    input-model)))
     (unwind-protect 
       (progn
         (#"begin" dataset)
