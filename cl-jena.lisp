@@ -46,18 +46,23 @@
   (format t "a ModelCom~%"))
 
 
-; creates a memory backed tdb2 dataset which works for testing
-(defun get-default-dataset ()
-  (get-default-model))
+; creates a tdb2 dataset
+(defun get-default-dataset (&optional &key (in-memory t))
+  (get-default-model :in-memory in-memory))
 
-(defun get-default-model ()
-  "sets *model* and *ds* to default model and the corresponding dataset, respectively"
+(defun get-default-model (&optional &key (in-memory t))
+  "sets *model* and *ds* to default model and the corresponding dataset, respectively.
+   the dataset can either be in memory or on disk"
   (if (null *ds*)
       ; start from scratch
-      (progn
-        (setf *ds*
-              (jstatic "createDataset" (jclass "org.apache.jena.tdb2.TDB2Factory")))
-        (setf *model* (#"getDefaultModel" *ds*)))
+      (let* ((file-based-dataset (jstatic "connectDataset" (jclass "org.apache.jena.tdb2.TDB2Factory")
+                                          (directory-namestring (ensure-directories-exist "/tmp/some_tdb2dataset/"))))) 
+        (progn
+          (setf *ds*
+                (if in-memory
+                    (jstatic "createDataset" (jclass "org.apache.jena.tdb2.TDB2Factory"))
+                    file-based-dataset))
+        (setf *model* (#"getDefaultModel" *ds*))))
       ; use existing dataset
       (progn
         (setf *model* (#"getDefaultModel" *ds*))
