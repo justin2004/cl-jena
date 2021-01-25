@@ -368,7 +368,7 @@
     owl-reasoner))
 
 ; owl mini
-(defun make-owl-reasoner ()
+(defun make-mini-owl-reasoner ()
   (jstatic "getOWLMiniReasoner"
            "org.apache.jena.reasoner.ReasonerRegistry"))
 
